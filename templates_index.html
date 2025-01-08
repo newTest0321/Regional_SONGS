@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Regional Songs</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #f9f9f9, #eaeaea);
+            color: #212529;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5rem;
+            color: #6c63ff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Map Container */
+        #map {
+            height: 80vh;
+            width: 90%;
+            border: 3px solid #6c63ff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin: 20px auto;
+        }
+
+        /* Popup Content */
+        .popup-content {
+            text-align: center;
+            font-size: 1rem;
+            color: #495057;
+        }
+
+        .popup-content b {
+            color: #6c63ff;
+            font-size: 1.1rem;
+        }
+
+        /* Button Styles */
+        .popup-content button {
+            background: linear-gradient(to right, #6c63ff, #4639ff);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .popup-content button i {
+            font-size: 1.1rem;
+        }
+
+        .popup-content button:hover {
+            background: linear-gradient(to right, #4639ff, #321fff);
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #6c63ff;
+            color: white;
+            font-size: 0.9rem;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        footer a {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            background: #6c63ff;
+            padding: 20px;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Search Box */
+        #search-bar {
+            display: flex;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        #search-bar input {
+            padding: 10px 15px;
+            width: 300px;
+            border: 2px solid #6c63ff;
+            border-radius: 20px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #search-bar input:focus {
+            border-color: #4639ff;
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+        }
+
+        #search-bar button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease-in-out;
+        }
+
+        #search-bar button:hover {
+            background: #4639ff;
+            transform: scale(1.05);
+        }
+         .location-label {
+            text-align: center;
+            font-family: 'Roboto', sans-serif;
+            color: black;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Explore the Rich Heritage of Indian Regional Songs
+    </header>
+
+    <h1>Indian Regional Songs Map</h1>
+
+
+    <div id="map"></div>
+    <footer>
+        &copy; 2024 Indian Regional Songs | Made with ❤️ by <a href="#">Your Name</a>
+    </footer>
+
+<script>
+    // Initialize map centered at India's approximate geographic center
+    const map = L.map('map').setView([22.9734, 78.6569], 5);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+    }).addTo(map);
+
+    // Define a custom icon for the marker
+    const locationIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Use any URL for a pin icon
+        iconSize: [32, 32], // Adjust the size of the icon
+        iconAnchor: [16, 32], // Anchor point of the icon (centered at the bottom)
+        popupAnchor: [0, -32] // Where the popup should open relative to the icon
+    });
+
+    // Data passed from Flask
+    const data = {{ data|tojson }};
+
+    // Loop through data to add markers and labels
+    data.forEach(region => {
+        const { Latitude, Longitude, "Music/Song Type": song, "State/Region": state } = region;
+
+        // Create a marker with a custom icon
+        L.marker([Latitude, Longitude], { icon: locationIcon })
+            .addTo(map)
+            .bindPopup(`
+                <div class="popup-content">
+                    <b>Location:</b> <span style="font-size: 1.1rem; font-weight: bold; color: #4639ff;">${state}</span><br>
+                    <b>Song Type:</b> ${song}<br>
+                    <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(song)}" target="_blank">
+                        <button>
+                            <i class="fas fa-search"></i> Get your song
+                        </button>
+                    </a>
+                </div>
+            `);
+
+        // Add a label with the location name in bold, displayed near the marker
+        const label = L.divIcon({
+            className: 'location-label',
+            html: `<b style="color: #4639ff; font-size: 1.1rem;">${state}</b>`,
+            iconSize: [100, 20], // Adjust size of the label box
+            iconAnchor: [50, -10] // Position the label above the marker
+        });
+
+        L.marker([Latitude, Longitude], { icon: label }).addTo(map);
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
